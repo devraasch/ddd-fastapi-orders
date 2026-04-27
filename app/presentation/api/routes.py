@@ -17,13 +17,10 @@ async def create_order(
     payload: CreateOrderRequest,
     use_case: CreateOrderUseCase = Depends(get_create_order_use_case),
 ) -> OrderResponse:
-    order = await use_case.execute(
-        customer_name=payload.customer_name,
-        total=payload.total,
-    )
+    order = await use_case.execute(customer_name=payload.customer_name)
     return OrderResponse(
         id=order.id,
         customer_name=order.customer_name,
         total=order.total,
-        status=order.status,
+        status=order.status.value,
     )

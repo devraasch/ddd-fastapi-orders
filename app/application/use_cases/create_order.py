@@ -12,14 +12,12 @@ class CreateOrderUseCase:
         self._order_repository = order_repository
         self._event_publisher = event_publisher
 
-    async def execute(self, customer_name: str, total: float) -> Order:
+    async def execute(self, customer_name: str) -> Order:
         order = Order(
             id=None,
             customer_name=customer_name,
-            total=total,
-            status="PENDING",
         )
-        created = self._order_repository.create(order)
+        created = await self._order_repository.create(order)
 
         await self._event_publisher.publish(
             "order.created",
@@ -27,7 +25,7 @@ class CreateOrderUseCase:
                 "id": created.id,
                 "customer_name": created.customer_name,
                 "total": created.total,
-                "status": created.status,
+                "status": created.status.value,
             },
         )
 

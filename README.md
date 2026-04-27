@@ -32,9 +32,9 @@ alembic/
 
 ### Configuration: database URL
 
-- **`app/infrastructure/config.py`**: `Settings` / `get_settings()` — single source for `database_url` and `rabbitmq_url` (from `.env` / environment).
-- **`app/infrastructure/database/base.py`**: `Base`, `engine`, `SessionLocal` — uses `get_settings().database_url` (no duplicated URL strings).
-- **Alembic** (`alembic/env.py`): imports `get_settings()` and `Base.metadata` (and `import models` so every table is registered on `metadata`). Migrations and the app always agree on the same config and ORM base.
+- **`app/infrastructure/config.py`**: `Settings` / `get_settings()` — `database_url` and `rabbitmq_url` (from `.env` / environment).
+- **`app/infrastructure/database/base.py`**: `Base`, async `create_async_engine`, `async_session_maker` — runtime uses **`postgresql+asyncpg://`** (see `.env.example`).
+- **Alembic** (`alembic/env.py`): same `DATABASE_URL` as the app; before opening a sync connection it rewrites **`postgresql+asyncpg://` → `postgresql+psycopg://`** so migrations use the existing psycopg driver. No second env var required for typical setups.
 
 ## Dependencies (uv)
 
