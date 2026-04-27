@@ -4,8 +4,8 @@ import time
 
 import httpx
 
-TOTAL_REQUESTS = 100
-CONCURRENCY = 5
+TOTAL_REQUESTS = 1000
+CONCURRENCY = 10
 TIMEOUT = 60.0
 BASE_URL = "http://127.0.0.1:8000"
 ORDERS_URL = f"{BASE_URL}/orders"
@@ -42,7 +42,6 @@ async def create_order(
 
     payload = {
         "customer_name": f"Cliente {index}",
-        "total": 150.0,
     }
 
     async with semaphore:

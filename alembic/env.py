@@ -8,13 +8,12 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import Connection
 
-# Raiz do repositório no sys.path (alembic pode ser invocado a partir de vários CWDs)
 _root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
 from app.infrastructure.config import get_settings
-from app.infrastructure.database import models  # noqa: F401  — regista tabelas no metadata
+from app.infrastructure.database import models  # noqa: F401
 from app.infrastructure.database.base import Base
 
 config = context.config
@@ -25,7 +24,10 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
-    return get_settings().database_url
+    url = get_settings().database_url
+    if "+asyncpg" in url:
+        return url.replace("postgresql+asyncpg://", "postgresql+psycopg://", 1)
+    return url
 
 
 def run_migrations_offline() -> None:

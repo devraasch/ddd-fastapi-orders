@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 
 class CreateOrderRequest(BaseModel):
     customer_name: str = Field(..., min_length=1, max_length=255)
-    total: float = Field(..., gt=0)
 
 
 class OrderResponse(BaseModel):
