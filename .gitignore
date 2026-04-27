@@ -24,12 +24,11 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-htmlcov/
 
-# Variáveis de ambiente: ignorar tudo, exceto o .env de exemplo de dev
-# (ou remova a linha `!.env` e use apenas `.env.example` versionado)
+# Variáveis de ambiente
+.env
 .env.*
-!.env
+!.env.example
 
 # IDEs e editores
 .idea/
@@ -39,7 +38,7 @@ htmlcov/
 *.swo
 *~
 
-# SO
+# Sistema operacional
 .DS_Store
 Thumbs.db
 
