@@ -89,6 +89,17 @@ def test_cannot_remove_item_when_order_is_confirmed() -> None:
         order.remove_item(product_id=1)
 
 
+def test_cannot_remove_item_when_order_is_cancelled() -> None:
+    order = Order(
+        id=1,
+        customer_name="Bob",
+        status=OrderStatus.CANCELLED,
+        items=[],
+    )
+    with pytest.raises(OrderMutationNotAllowed):
+        order.remove_item(product_id=1)
+
+
 def test_order_stores_customer_name() -> None:
     order = Order(id=None, customer_name="Alice")
     assert order.customer_name == "Alice"

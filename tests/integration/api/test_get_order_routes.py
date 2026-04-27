@@ -2,19 +2,32 @@ import asyncio
 
 from app.domain.entities.order import Order
 
+_LINE = {"product_id": 1, "quantity": 1, "unit_price": 0.0}
+_POST = {"customer_name": "Maria", "items": [_LINE]}
+
 
 def test_read_order_returns_200_after_post(order_client) -> None:
     client, _repo, _publisher = order_client
-    client.post("/orders", json={"customer_name": "Maria"})
+    client.post("/orders", json=_POST)
     response = client.get("/orders/1")
     assert response.status_code == 200
 
 
-def test_read_order_includes_empty_items(order_client) -> None:
+def test_read_order_includes_posted_items(order_client) -> None:
     client, _repo, _publisher = order_client
-    client.post("/orders", json={"customer_name": "Maria"})
+    client.post(
+        "/orders",
+        json={
+            "customer_name": "Maria",
+            "items": [
+                {"product_id": 10, "quantity": 1, "unit_price": 2.0},
+            ],
+        },
+    )
     response = client.get("/orders/1")
-    assert response.json()["items"] == []
+    assert response.json()["items"] == [
+        {"product_id": 10, "quantity": 1, "unit_price": 2.0},
+    ]
 
 
 def test_read_order_unknown_returns_404(order_client) -> None:
@@ -31,7 +44,15 @@ def test_list_orders_empty_initially(order_client) -> None:
 
 def test_list_orders_shows_created_order(order_client) -> None:
     client, _repo, _publisher = order_client
-    client.post("/orders", json={"customer_name": "Maria"})
+    client.post(
+        "/orders",
+        json={
+            "customer_name": "Maria",
+            "items": [
+                {"product_id": 1, "quantity": 1, "unit_price": 0.0},
+            ],
+        },
+    )
     response = client.get("/orders")
     assert response.json() == [
         {
@@ -39,7 +60,9 @@ def test_list_orders_shows_created_order(order_client) -> None:
             "customer_name": "Maria",
             "total": 0.0,
             "status": "PENDING",
-            "items": [],
+            "items": [
+                {"product_id": 1, "quantity": 1, "unit_price": 0.0},
+            ],
         }
     ]
 
