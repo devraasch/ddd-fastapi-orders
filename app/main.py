@@ -5,8 +5,6 @@ from collections.abc import AsyncIterator, Callable
 
 from fastapi import FastAPI
 
-from app.infrastructure.database import models  # noqa: F401
-from app.infrastructure.database.base import Base, engine
 from app.infrastructure.messaging.rabbitmq_publisher import create_rabbitmq_publisher
 from app.presentation.api.routes import router as api_router
 
@@ -15,9 +13,6 @@ Lifespan = Callable[[FastAPI], AbstractAsyncContextManager[None]]
 
 @asynccontextmanager
 async def production_lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # Schema inicial sem migrations (MVP). Em produção, trocar por Alembic.
-    Base.metadata.create_all(bind=engine)
-
     publisher, rabbit_cleanup = await create_rabbitmq_publisher()
     app.state.event_publisher = publisher
 
@@ -28,7 +23,6 @@ async def production_lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 @asynccontextmanager
 async def noop_lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Lifespan vazio — usado em testes para não falar com Postgres/RabbitMQ."""
     yield
 
 

@@ -11,6 +11,7 @@ dependencies = [
     "psycopg[binary]>=3.2.0",
     "pydantic-settings>=2.0.0",
     "aio-pika>=9.0.0",
+    "alembic>=1.14.0",
 ]
 
 [dependency-groups]
@@ -42,3 +43,6 @@ skip_covered = false
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/env.py" = ["E402"]

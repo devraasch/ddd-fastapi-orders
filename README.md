@@ -9,7 +9,7 @@ This project is a minimal MVP for order creation, designed to evolve with DDD co
 Current features:
 - create orders
 - health check endpoint
-- PostgreSQL persistence
+- PostgreSQL persistence (SQLAlchemy + **Alembic** migrations)
 - RabbitMQ event publishing
 - automated tests
 - coverage support
@@ -25,3 +25,118 @@ app/
   application/
   infrastructure/
   presentation/
+alembic/
+  env.py
+  versions/
+```
+
+### Configuration: database URL
+
+- **`app/infrastructure/config.py`**: `Settings` / `get_settings()` — single source for `database_url` and `rabbitmq_url` (from `.env` / environment).
+- **`app/infrastructure/database/base.py`**: `Base`, `engine`, `SessionLocal` — uses `get_settings().database_url` (no duplicated URL strings).
+- **Alembic** (`alembic/env.py`): imports `get_settings()` and `Base.metadata` (and `import models` so every table is registered on `metadata`). Migrations and the app always agree on the same config and ORM base.
+
+## Dependencies (uv)
+
+```bash
+uv sync --all-groups
+```
+
+## PostgreSQL (Docker)
+
+Start only the database (and optionally RabbitMQ) if you are running the API on the host:
+
+```bash
+docker compose up -d db
+# or full stack: docker compose up -d
+```
+
+Use a `DATABASE_URL` that matches your setup (see `.env`: host `db` from other Compose services, or `127.0.0.1` / `localhost` when the API runs on the host with published ports).
+
+## Database migrations (Alembic)
+
+Apply all pending migrations to the current database (creates/updates schema):
+
+```bash
+uv run alembic upgrade head
+```
+
+Check current revision / history:
+
+```bash
+uv run alembic current
+uv run alembic history
+```
+
+**Initial migration** in this repo: `20260126_0001` — creates the `orders` table. The application **no longer** calls `Base.metadata.create_all()` at startup; schema changes are expected to go through Alembic.
+
+### Create a new migration (after you change models)
+
+1. Edit SQLAlchemy models under `app/infrastructure/database/`.
+2. Autogenerate a revision (compare models to DB; review the file before committing):
+
+   ```bash
+   uv run alembic revision --autogenerate -m "describe_change"
+   ```
+
+3. Or add an empty revision and edit by hand:
+
+   ```bash
+   uv run alembic revision -m "describe_change"
+   ```
+
+4. Apply:
+
+   ```bash
+   uv run alembic upgrade head
+   ```
+
+## Run the API
+
+```bash
+uv run uvicorn app.main:app --reload
+```
+
+With Docker Compose (after DB is up and migrations applied for a fresh database):
+
+```bash
+docker compose up
+```
+
+For a new environment, run migrations **before** or **right after** Postgres is up, e.g.:
+
+```bash
+docker compose up -d db
+uv run alembic upgrade head
+docker compose up api
+```
+
+Or one-off in the API container (project mounted at `/app`):
+
+```bash
+docker compose run --rm api uv run alembic upgrade head
+```
+
+## Tests
+
+```bash
+uv run pytest
+uv run pytest tests/unit
+uv run pytest tests/integration
+```
+
+## Ruff
+
+```bash
+uv run ruff check app/ alembic/
+```
+
+## What changed at startup (vs `create_all`)
+
+Previously the app created tables in `lifespan` with `Base.metadata.create_all()`. That is **removed**: the database schema is owned by **Alembic**. The FastAPI `lifespan` only wires the RabbitMQ publisher; Postgres is assumed to already be migrated.
+
+---
+
+Suggested commit message:
+
+`chore(db): add Alembic migrations and remove create_all from app lifespan`
