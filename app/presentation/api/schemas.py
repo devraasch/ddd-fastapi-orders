@@ -3,8 +3,15 @@ from pydantic import BaseModel, Field
 from app.domain.entities.order import Order
 
 
+class CreateOrderItemRequest(BaseModel):
+    product_id: int
+    quantity: int = Field(..., ge=1)
+    unit_price: float = Field(..., ge=0)
+
+
 class CreateOrderRequest(BaseModel):
     customer_name: str = Field(..., min_length=1, max_length=255)
+    items: list[CreateOrderItemRequest] = Field(..., min_length=1)
 
 
 class OrderItemResponse(BaseModel):

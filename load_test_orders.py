@@ -203,7 +203,7 @@ async def create_order(
         "customer_name": f"Cliente {order_number}",
         "items": [
             {
-                "product_id": f"product-{order_number}",
+                "product_id": order_number,
                 "quantity": 1,
                 "unit_price": 150.0,
             }

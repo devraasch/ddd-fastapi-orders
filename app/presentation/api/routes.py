@@ -28,7 +28,11 @@ async def create_order(
     payload: CreateOrderRequest,
     create: CreateOrder = Depends(get_create_order),
 ) -> OrderResponse:
-    order = await create.execute(customer_name=payload.customer_name)
+    line_items = [(i.product_id, i.quantity, i.unit_price) for i in payload.items]
+    order = await create.execute(
+        customer_name=payload.customer_name,
+        items=line_items,
+    )
     return order_to_response(order)
 
 
