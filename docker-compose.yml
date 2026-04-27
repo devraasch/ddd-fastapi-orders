@@ -1,0 +1,64 @@
+services:
+  api:
+    build: .
+    container_name: fastapi-ordering-api
+    env_file:
+      - .env
+    # Bind mount: evita aviso de hardlink entre host e contexto; alinha o uv com o Python 3.12 da imagem
+    environment:
+      UV_LINK_MODE: copy
+      UV_PYTHON: "3.12"
+    ports:
+      - "${APP_PORT}:8000"
+    volumes:
+      - .:/app
+      # venv do contentor: não passa no bind mount, evita .venv no host com dono root/nobody
+      - api_venv:/app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:16-alpine
+    container_name: fastapi-ordering-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fastapi-ordering-rabbitmq
+    env_file:
+      - .env
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping", "-q"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  api_venv:

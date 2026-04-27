@@ -1,0 +1,32 @@
+# Repositório e CI
+.git/
+.github/
+
+# Python / uv — a imagem reinstala dependências; não precisa de cache local
+.venv/
+.uv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Não colocar segredos no *context* de `docker build` (secrets vêm de env/compose)
+.env
+.env.*
+!.env.example
+
+# Testes (runtime da API não precisa deles no layer de build)
+tests/
+htmlcov
+
+# IDEs
+.vscode/
+.idea/
+
+# SO
+.DS_Store

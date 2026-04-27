@@ -1,0 +1,47 @@
+# Ambiente e ferramentas Python / uv
+.venv/
+.uv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testes e qualidade
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+htmlcov/
+
+# Variáveis de ambiente: ignorar tudo, exceto o .env de exemplo de dev
+# (ou remova a linha `!.env` e use apenas `.env.example` versionado)
+.env.*
+!.env
+
+# IDEs e editores
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
