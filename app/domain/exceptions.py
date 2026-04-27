@@ -8,3 +8,11 @@ class InvalidOrderItemError(DomainError):
 
 class OrderMutationNotAllowed(DomainError):
     pass
+
+
+class CannotConfirmOrderError(DomainError):
+    pass
+
+
+class CannotCancelOrderError(DomainError):
+    pass

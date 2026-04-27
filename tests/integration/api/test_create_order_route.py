@@ -1,4 +1,4 @@
-def test_post_orders_returns_status_code_200(order_client) -> None:
+def test_post_orders_returns_200(order_client) -> None:
     client, _repo, _publisher = order_client
     response = client.post(
         "/orders",
@@ -7,7 +7,7 @@ def test_post_orders_returns_status_code_200(order_client) -> None:
     assert response.status_code == 200
 
 
-def test_post_orders_response_json_matches_expected_payload(order_client) -> None:
+def test_post_orders_response_shape(order_client) -> None:
     client, _repo, _publisher = order_client
     response = client.post(
         "/orders",
@@ -18,12 +18,11 @@ def test_post_orders_response_json_matches_expected_payload(order_client) -> Non
         "customer_name": "Maria",
         "total": 0.0,
         "status": "PENDING",
+        "items": [],
     }
 
 
-def test_post_orders_records_single_order_created_event_in_fake_publisher(
-    order_client,
-) -> None:
+def test_post_orders_publishes_created_event(order_client) -> None:
     client, _repo, publisher = order_client
     client.post(
         "/orders",

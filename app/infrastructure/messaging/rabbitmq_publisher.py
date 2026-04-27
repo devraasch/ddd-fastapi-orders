@@ -6,6 +6,7 @@ from typing import Any
 
 import aio_pika
 from aio_pika.abc import AbstractExchange
+from aiormq.exceptions import AMQPError
 
 from app.application.ports.event_publisher import EventPublisherPort
 from app.infrastructure.config import get_settings
@@ -14,11 +15,14 @@ logger = logging.getLogger(__name__)
 
 _CONNECT_RETRIES = 10
 _CONNECT_DELAY_S = 1.0
+_PUBLISH_RETRIES = 3
+_PUBLISH_BACKOFF_S = 0.05
 
 
 class RabbitMQPublisher(EventPublisherPort):
     def __init__(self, exchange: AbstractExchange) -> None:
         self._exchange = exchange
+        self._lock = asyncio.Lock()
 
     async def publish(self, event_name: str, payload: dict[str, Any]) -> None:
         body = json.dumps(payload, default=str).encode("utf-8")
@@ -27,7 +31,21 @@ class RabbitMQPublisher(EventPublisherPort):
             content_type="application/json",
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
         )
-        await self._exchange.publish(message, routing_key=event_name)
+        async with self._lock:
+            for attempt in range(1, _PUBLISH_RETRIES + 1):
+                try:
+                    await self._exchange.publish(message, routing_key=event_name)
+                    return
+                except AMQPError as e:
+                    logger.warning(
+                        "Falha ao publicar no RabbitMQ (tentativa %s/%s): %s",
+                        attempt,
+                        _PUBLISH_RETRIES,
+                        e,
+                    )
+                    if attempt == _PUBLISH_RETRIES:
+                        raise
+                    await asyncio.sleep(_PUBLISH_BACKOFF_S * attempt)
 
 
 async def create_rabbitmq_publisher() -> (

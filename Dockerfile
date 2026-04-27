@@ -12,4 +12,7 @@ RUN uv sync
 
 COPY . .
 
+RUN chmod +x /app/scripts/docker-entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "/app/scripts/docker-entrypoint.sh"]
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

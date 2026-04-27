@@ -3,7 +3,7 @@ from app.domain.entities.order import Order
 from app.domain.repositories.order_repository import OrderRepository
 
 
-class CreateOrderUseCase:
+class CreateOrder:
     def __init__(
         self,
         order_repository: OrderRepository,
