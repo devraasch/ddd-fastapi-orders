@@ -1,7 +1,11 @@
 from dataclasses import dataclass, field
 
 from app.domain.entities.order_item import OrderItem
-from app.domain.exceptions import OrderMutationNotAllowed
+from app.domain.exceptions import (
+    CannotCancelOrderError,
+    CannotConfirmOrderError,
+    OrderMutationNotAllowed,
+)
 from app.domain.value_objects.order_status import OrderStatus
 
 
@@ -38,3 +42,17 @@ class Order:
     def _ensure_can_mutate_items(self) -> None:
         if self.status is not OrderStatus.PENDING:
             raise OrderMutationNotAllowed("items can only change while the order is pending")
+
+    def confirm(self) -> None:
+        if self.status is not OrderStatus.PENDING:
+            raise CannotConfirmOrderError(
+                f"order cannot be confirmed in state {self.status.value}"
+            )
+        if not self.items:
+            raise CannotConfirmOrderError("cannot confirm an order with no items")
+        self.status = OrderStatus.CONFIRMED
+
+    def cancel(self) -> None:
+        if self.status is OrderStatus.CANCELLED:
+            raise CannotCancelOrderError("order is already cancelled")
+        self.status = OrderStatus.CANCELLED

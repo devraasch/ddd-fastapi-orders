@@ -125,6 +125,43 @@ uv run pytest tests/unit
 uv run pytest tests/integration
 ```
 
+For a rough concurrent `POST /orders` check on a **local** dev machine, see [Load test (local, informal)](#load-test-local-informal).
+
+## Load test (local, informal)
+
+`load_test_orders.py` is a small **local development** helper: it sends concurrent `POST /orders` with httpx and prints latency and throughput. Treat it as a sanity check on your workstation, not as production load testing, a benchmark under controlled conditions, or any kind of capacity or SLA. Outcomes change with hardware, DB and RabbitMQ placement (Docker vs host), contention, and what else is running.
+
+**One recorded run** — API at `http://127.0.0.1:8000`, `TOTAL_REQUESTS=1000`, other parameters:
+
+| Parameter | Value |
+|-----------|--------|
+| `CONCURRENCY` | 5 |
+| `TIMEOUT` | 60.0 s |
+| `VERBOSE` | false |
+| `MAX_ERROR_SAMPLES` | 12 |
+
+**Outcomes (same run)**:
+
+| Metric | Value |
+|--------|--------|
+| HTTP 2xx (success) | 1000 |
+| HTTP non-2xx | 0 |
+| Transport / exception | 0 |
+| Total wall time | 7.08 s |
+| Throughput (2xx only) | 141.22 req/s |
+| Throughput (all attempts) | 141.22 req/s |
+| Latency mean (2xx) | 35.31 ms |
+| Median | 28.66 ms |
+| Min / max | 17.18 / 91.29 ms |
+| P95 / P99 | 67.01 / 81.47 ms |
+
+```bash
+# With the API already running, from the repo root:
+uv run python load_test_orders.py
+```
+
+Useful env vars: `BASE_URL`, `CONCURRENCY`, `TOTAL_REQUESTS`, `TIMEOUT`, `VERBOSE=1`, `MAX_ERROR_SAMPLES` (see the script for defaults).
+
 ## Ruff
 
 ```bash
@@ -134,9 +171,3 @@ uv run ruff check app/ alembic/
 ## What changed at startup (vs `create_all`)
 
 Previously the app created tables in `lifespan` with `Base.metadata.create_all()`. That is **removed**: the database schema is owned by **Alembic**. The FastAPI `lifespan` only wires the RabbitMQ publisher; Postgres is assumed to already be migrated.
-
----
-
-Suggested commit message:
-
-`chore(db): add Alembic migrations and remove create_all from app lifespan`

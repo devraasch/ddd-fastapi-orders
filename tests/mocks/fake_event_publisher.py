@@ -4,8 +4,6 @@ from app.application.ports.event_publisher import EventPublisherPort
 
 
 class FakeEventPublisher(EventPublisherPort):
-    """Regista publicações em memória — sem RabbitMQ."""
-
     def __init__(self) -> None:
         self.published: list[tuple[str, dict[str, Any]]] = []
 

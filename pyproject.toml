@@ -31,6 +31,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
     "integration: testes de API (HTTP)",
+    "integration_db: testes de repositório com PostgreSQL",
     "unit: testes de domínio e aplicação",
 ]
 
